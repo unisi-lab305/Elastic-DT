@@ -426,7 +426,7 @@ def _return_search(
 
     if t < context_len:
         for i in range(0, math.ceil((t + 1)/rs_ratio), rs_steps):
-            _, act_preds, ret_preds, imp_ret_preds, _ = model.forward(
+            _, act_preds, ret_preds, imp_ret_preds, _, _, _ = model.forward(
                 timesteps[:, i : context_len + i],
                 states[:, i : context_len + i],
                 actions[:, i : context_len + i],
@@ -449,7 +449,7 @@ def _return_search(
                 )
 
                 # we should estimate it again with the estimated rtg
-                _, act_preds, ret_preds, imp_ret_preds_pure, _ = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _ = model.forward(
                     timesteps[:, i : context_len + i],
                     states[:, i : context_len + i],
                     actions[:, i : context_len + i],
@@ -458,7 +458,7 @@ def _return_search(
                 )
 
             else:
-                _, act_preds, ret_preds, imp_ret_preds_pure, _ = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _ = model.forward(
                     timesteps[:, i : context_len + i],
                     states[:, i : context_len + i],
                     actions[:, i : context_len + i],
@@ -479,7 +479,7 @@ def _return_search(
 
     else:
         for i in range(0, math.ceil(context_len/rs_ratio), rs_steps):
-            _, act_preds, ret_preds, imp_ret_preds, _ = model.forward(
+            _, act_preds, ret_preds, imp_ret_preds, _, _, _ = model.forward(
                 timesteps[:, t - context_len + 1 + i : t + 1 + i],
                 states[:, t - context_len + 1 + i : t + 1 + i],
                 actions[:, t - context_len + 1 + i : t + 1 + i],
@@ -501,7 +501,7 @@ def _return_search(
                 )
 
                 # we should estimate the results again with the estimated return
-                _, act_preds, ret_preds, imp_ret_preds_pure, _ = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _ = model.forward(
                     timesteps[:, t - context_len + 1 + i : t + 1 + i],
                     states[:, t - context_len + 1 + i : t + 1 + i],
                     actions[:, t - context_len + 1 + i : t + 1 + i],
@@ -510,7 +510,7 @@ def _return_search(
                 )
 
             else:
-                _, act_preds, ret_preds, imp_ret_preds_pure, _ = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _ = model.forward(
                     timesteps[:, t - context_len + 1 + i : t + 1 + i],
                     states[:, t - context_len + 1 + i : t + 1 + i],
                     actions[:, t - context_len + 1 + i : t + 1 + i],

@@ -390,11 +390,16 @@ class ElasticDecisionTransformer(
             h[:, 2]
         )  # predict reward given s, R, a
 
+        target_feature = 0.
+        pred_feature = 0.
+
         return (
             state_preds,
             action_preds,
             return_preds,
             return_preds2,
             reward_preds,
+            target_feature,
+            pred_feature
         )
 

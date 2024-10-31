@@ -170,7 +170,8 @@ def train(args):
         log_state_losses = []
         log_exp_losses = []
         ret_ce_losses = []
-        overall_loss = []
+        int_losses = []
+        overall_losses = []
         model.train()
 
         for _ in range(num_updates_per_iter):
@@ -214,6 +215,8 @@ def train(args):
                     return_preds_u,
                     imp_return_preds_u,
                     reward_preds_u,
+                    target_features_u,
+                    pred_features_u,
                 ) = model.forward(
                     timesteps=timesteps_u,
                     states=states_u,
@@ -263,6 +266,13 @@ def train(args):
                         -1, 1)[traj_mask_u.view(-1,) > 0])
                 ret_ce_loss = cross_entropy(return_preds_u, return_target_u)
 
+                def intrinsic_loss(pred, target):
+                    # TODO: Implement intrinsic loss
+                    return 0.
+
+                int_loss = intrinsic_loss(pred_features_u, target_features_u)
+
+                # TODO: add intrinsic loss to the overall loss
                 edt_loss = (
                     action_loss
                     + state_loss * state_loss_weight
@@ -282,12 +292,15 @@ def train(args):
             log_exp_losses.append(imp_loss.detach().cpu().item())
             log_action_losses.append(action_loss.detach().cpu().item())
             log_state_losses.append(state_loss.detach().cpu().item())
-            overall_loss.append(edt_loss.detach().cpu().item())
+            int_losses.append(int_loss)  # TODO: detach and cpu
+            overall_losses.append(edt_loss.detach().cpu().item())
 
-        mean_ret_loss = np.mean(ret_ce_losses)
         mean_action_loss = np.mean(log_action_losses)
         mean_state_loss = np.mean(log_state_losses)
         mean_expectile_loss = np.mean(log_exp_losses)
+        mean_ret_loss = np.mean(ret_ce_losses)
+        mean_int_loss = np.mean(int_losses)
+        mean_overall_loss = np.mean(overall_losses)
         time_elapsed = str(datetime.now().replace(microsecond=0) - start_time)
         total_updates += num_updates_per_iter
 
@@ -296,7 +309,8 @@ def train(args):
             'training/mean_state_loss': mean_state_loss,
             'training/mean_expectile_loss': mean_expectile_loss,
             'training/mean_return_loss': mean_ret_loss,
-            'training/overall_loss': np.mean(overall_loss)
+            'training/mean_intrinsic_loss': mean_int_loss,
+            'training/overall_loss': np.mean(mean_overall_loss)
         })
 
         log_str = (
