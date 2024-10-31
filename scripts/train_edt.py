@@ -344,6 +344,6 @@ if __name__ == "__main__":
 
     args = parse()
 
-    wandb.init(project=args.project_name, config=OmegaConf.to_container(args, resolve=True))
+    wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(args, resolve=True))
 
     train(args)

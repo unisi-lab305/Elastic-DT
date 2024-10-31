@@ -227,6 +227,6 @@ if __name__ == "__main__":
     cfg = OmegaConf.load(config_file)
     cfg.merge_with_dotlist([f"{k}={v}" for k, v in vars(args).items() if v is not None])
 
-    wandb.init(project=args.project_name, config=OmegaConf.to_container(cfg, resolve=True))
+    wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(cfg, resolve=True))
 
     test(cfg)
