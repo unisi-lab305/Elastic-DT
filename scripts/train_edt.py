@@ -170,6 +170,7 @@ def train(args):
         log_state_losses = []
         log_exp_losses = []
         ret_ce_losses = []
+        overall_loss = []
         model.train()
 
         for _ in range(num_updates_per_iter):
@@ -231,38 +232,17 @@ def train(args):
 
                 # only consider non padded elements
                 # action mse loss
-                action_preds_u = action_preds_u.view(-1, act_dim)[
-                    traj_mask_u.view(
-                        -1,
-                    )
-                    > 0
-                ]
+                action_preds_u = action_preds_u.view(-1, act_dim)[traj_mask_u.view(-1,) > 0]
                 action_target_u = actions_u.view(-1, act_dim)[
-                    traj_mask_u.view(
-                        -1,
-                    )
-                    > 0
-                ]
-                action_loss = F.mse_loss(
-                    action_preds_u, action_target_u, reduction="mean"
-                )
+                    traj_mask_u.view(-1,) > 0]
+                action_loss = F.mse_loss(action_preds_u, action_target_u, reduction="mean")
 
                 # state mse loss (optional)
                 state_preds_u = state_preds_u.view(-1, state_dim)[
-                    traj_mask_u.view(
-                        -1,
-                    )
-                    > 0
-                ]
+                    traj_mask_u.view(-1,) > 0]
                 state_target_u = next_states_u.view(-1, state_dim)[
-                    traj_mask_u.view(
-                        -1,
-                    )
-                    > 0
-                ]
-                state_loss = F.mse_loss(
-                    state_preds_u, state_target_u, reduction="mean"
-                )
+                    traj_mask_u.view(-1,) > 0]
+                state_loss = F.mse_loss(state_preds_u, state_target_u, reduction="mean")
 
                 # return expectile loss
                 def expectile_loss(diff, expectile=0.8):
@@ -270,45 +250,17 @@ def train(args):
                     return weight * (diff**2)
 
                 imp_return_pred = imp_return_preds_u.reshape(-1, 1)[
-                    traj_mask_u.view(
-                        -1,
-                    )
-                    > 0
-                ]
+                    traj_mask_u.view(-1,) > 0]
                 imp_return_target = returns_to_go_u.reshape(-1, 1)[
-                    traj_mask_u.view(
-                        -1,
-                    )
-                    > 0
-                ]
+                    traj_mask_u.view(-1,) > 0]
 
-                imp_loss = expectile_loss(
-                    (imp_return_target - imp_return_pred), expectile
-                ).mean()
-
+                imp_loss = expectile_loss((imp_return_target - imp_return_pred), expectile).mean()
 
                 # return cross entropy loss
-                return_preds_u = return_preds_u.reshape(-1, int(num_bin))[
-                    traj_mask_u.view(
-                        -1,
-                    )
-                    > 0
-                ]
+                return_preds_u = return_preds_u.reshape(-1, int(num_bin))[traj_mask_u.view(-1,) > 0]
                 return_target_u = (
-                    encode_return(
-                        env_name,
-                        returns_to_go_u,
-                        num_bin=num_bin,
-                        rtg_scale=rtg_scale,
-                    )
-                    .float()
-                    .reshape(-1, 1)[
-                        traj_mask_u.view(
-                            -1,
-                        )
-                        > 0
-                    ]
-                )
+                    encode_return(env_name, returns_to_go_u, num_bin=num_bin, rtg_scale=rtg_scale).float().reshape(
+                        -1, 1)[traj_mask_u.view(-1,) > 0])
                 ret_ce_loss = cross_entropy(return_preds_u, return_target_u)
 
                 edt_loss = (
@@ -330,6 +282,7 @@ def train(args):
             log_exp_losses.append(imp_loss.detach().cpu().item())
             log_action_losses.append(action_loss.detach().cpu().item())
             log_state_losses.append(state_loss.detach().cpu().item())
+            overall_loss.append(edt_loss.detach().cpu().item())
 
         mean_ret_loss = np.mean(ret_ce_losses)
         mean_action_loss = np.mean(log_action_losses)
@@ -337,6 +290,14 @@ def train(args):
         mean_expectile_loss = np.mean(log_exp_losses)
         time_elapsed = str(datetime.now().replace(microsecond=0) - start_time)
         total_updates += num_updates_per_iter
+
+        wandb.log({
+            'training/mean_action_loss': mean_action_loss,
+            'training/mean_state_loss': mean_state_loss,
+            'training/mean_expectile_loss': mean_expectile_loss,
+            'training/mean_return_loss': mean_ret_loss,
+            'training/overall_loss': np.mean(overall_loss)
+        })
 
         log_str = (
             "=" * 60

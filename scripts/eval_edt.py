@@ -22,6 +22,7 @@ from scipy.interpolate import make_interp_spline
 from torch.utils.data import DataLoader
 from omegaconf import OmegaConf
 
+
 def save_frames_as_gif(frames, path='./', filename='gym_animation.gif'):
 
     #Mess with this to change frame size
@@ -37,7 +38,6 @@ def save_frames_as_gif(frames, path='./', filename='gym_animation.gif'):
     anim.save(path + filename, writer='imagemagick', fps=60)
 
 
- 
 def test(args):
 
     # seeding
