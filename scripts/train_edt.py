@@ -21,7 +21,6 @@ from omegaconf import OmegaConf
 
 
 def train(args, start_time, start_time_str):
-
     scaler = torch.cuda.amp.GradScaler()
     model_saver = ModelSaver(args)
 
@@ -105,7 +104,6 @@ def train(args, start_time, start_time_str):
 
     log_csv_name = prefix + "_log_" + start_time_str + ".csv"
     log_csv_path = os.path.join(log_dir, log_csv_name)
-
 
     print("=" * 60)
     print("start time: " + start_time_str)
@@ -374,8 +372,8 @@ if __name__ == "__main__":
     if args.intr == 'none':
         wandb_name = f'train-{args.env}-{args.seed}-{start_time_str}'
     else:
-        assert args.intr == 'state' or args.intr == 'embedding', \
-            "--intr must be either 'state' or 'embedding'"
+        assert args.intr == 'state' or args.intr == 'pred' or args.intr == 'embedding', \
+            "--intr must be either 'state' or 'pred' or 'embedding'"
         wandb_name = f'train-{args.env}-{args.seed}-{args.intr}-{start_time_str}'
     wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(args, resolve=True),
                name=wandb_name)

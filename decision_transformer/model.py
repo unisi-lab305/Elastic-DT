@@ -378,7 +378,7 @@ class ElasticDecisionTransformer(
 
         ### intrinsic branch
         self.intrinsic_loss = intrinsic_loss
-        if intrinsic_loss == 'state':
+        if intrinsic_loss == 'state' or intrinsic_loss == 'pred':
             self.rnd = RNDModel(state_dim)
         elif intrinsic_loss == 'embedding':
             self.rnd = RNDModel(h_dim)
@@ -441,6 +441,8 @@ class ElasticDecisionTransformer(
         # state_embeddings.shape = torch.Size([256, 20, 512])
         if self.intrinsic_loss == 'state':
             target_feature, pred_feature = self.rnd(states)
+        elif self.intrinsic_loss == 'pred':
+            target_feature, pred_feature = self.rnd(state_preds)
         elif self.intrinsic_loss == 'embedding':
             target_feature, pred_feature = self.rnd(state_embeddings)
         # TODO: apply rnd to "h" or "state_preds"/"action_preds"/"return_preds"/"reward_preds"
