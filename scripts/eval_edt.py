@@ -231,8 +231,8 @@ if __name__ == "__main__":
     if args.intr == 'none':
         wandb_name = f'eval-{args.env}-{args.seed}'
     else:
-        assert args.intr == 'state' or args.intr == 'embedding', \
-            "--intr must be either 'state' or 'embedding'"
+        assert args.intr == 'state' or args.intr == 'pred' or args.intr == 'embedding', \
+            "--intr must be either 'state' or 'pred' or 'embedding'"
         wandb_name = f'eval-{args.env}-{args.seed}-{args.intr}'
     wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(args, resolve=True),
                name=wandb_name)
