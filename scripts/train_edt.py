@@ -300,7 +300,7 @@ def train(args, start_time, start_time_str):
             log_exp_losses.append(imp_loss.detach().cpu().item())
             log_action_losses.append(action_loss.detach().cpu().item())
             log_state_losses.append(state_loss.detach().cpu().item())
-            int_losses.append(int_loss)  # TODO: detach and cpu
+            int_losses.append(int_loss.detach().cpu().item()) 
             overall_losses.append(edt_loss.detach().cpu().item())
 
         mean_action_loss = np.mean(log_action_losses)
