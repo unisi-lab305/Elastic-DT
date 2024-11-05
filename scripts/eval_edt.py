@@ -209,7 +209,7 @@ if __name__ == "__main__":
 
     args = base_parse()
 
-    predefined_keys = ["env", "dataset", "n_heads", "n_blocks", "batch_size", "num_bin", "expectile", "seed"]
+    predefined_keys = ["env", "dataset", "n_heads", "n_blocks", "batch_size", "num_bin", "expectile", "seed", "intr"]
     values = args.chk_pt_name.split('_')
     arg_dict = dict(zip(predefined_keys, values))
 
@@ -222,11 +222,17 @@ if __name__ == "__main__":
     args.num_bin = int(float(arg_dict["num_bin"]))
     args.expectile = float(arg_dict["expectile"])
     args.seed = int(arg_dict["seed"])
+    args.intr = arg_dict["intr"]
     ###
     config_file = f"configs/{args.env if args.env else 'default'}.yaml"
     cfg = OmegaConf.load(config_file)
     cfg.merge_with_dotlist([f"{k}={v}" for k, v in vars(args).items() if v is not None])
 
-    wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(cfg, resolve=True))
+    if args.intr:
+        wandb_name = f'train-{args.env}-{args.seed}-{args.intr}'
+    else:
+        wandb_name = f'train-{args.env}-{args.seed}'
+    wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(args, resolve=True),
+               name=wandb_name)
 
     test(cfg)

@@ -5,6 +5,8 @@ experiment_track
 run_training.sh
 run_test.sh
 
+# ipython notebook
+*.ipynb
 
 *.csv
 *.log

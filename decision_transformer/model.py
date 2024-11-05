@@ -279,7 +279,8 @@ class ElasticDecisionTransformer(
         rtg_scale=1000,
         num_inputs=3,
         real_rtg=False,
-        is_continuous=True, # True for continuous action
+        is_continuous=True,
+        intrinsic_loss=None,
     ):
         super().__init__(
             state_dim,
@@ -392,6 +393,9 @@ class ElasticDecisionTransformer(
 
         target_feature = 0.
         pred_feature = 0.
+
+        # states.shape = torch.Size([256, 20, 11])
+        # state_embeddings.shape = torch.Size([256, 20, 512])
 
         return (
             state_preds,

@@ -78,6 +78,9 @@ def base_parse():
     parser.add_argument('--heuristic', default=False)
     parser.add_argument('--heuristic_delta', type=int, default=1)
 
+    parser.add_argument("--intr", type=str, default=None)
+    parser.add_argument("--intr_weight", type=float, default=1.)
+
     args = parser.parse_args()
 
     return args

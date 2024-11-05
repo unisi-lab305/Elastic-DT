@@ -20,7 +20,7 @@ from torch.utils.data import DataLoader
 from omegaconf import OmegaConf
 
 
-def train(args):
+def train(args, start_time, start_time_str):
 
     scaler = torch.cuda.amp.GradScaler()
     model_saver = ModelSaver(args)
@@ -82,6 +82,11 @@ def train(args):
     real_rtg = args.real_rtg
     data_ratio = args.data_ratio
 
+    intrinsic_loss = args.intrinsic_loss
+    if intrinsic_loss:
+        assert intrinsic_loss == 'state' or intrinsic_loss == 'embedding', \
+            "Intrinsic loss must be either 'state' or 'embedding'"
+
     eval_d4rl_score_mson = None
 
     # load data from this file
@@ -94,9 +99,6 @@ def train(args):
 
     # training and evaluation device
     device = torch.device(args.device)
-
-    start_time = datetime.now().replace(microsecond=0)
-    start_time_str = start_time.strftime("%y-%m-%d-%H-%M-%S")
 
     prefix = "edt_" + env_d4rl_name + f"_{args.seed}"
 
@@ -152,6 +154,7 @@ def train(args):
         dt_mask=dt_mask,
         rtg_scale=rtg_scale,
         real_rtg=real_rtg,
+        intrinsic_loss=intrinsic_loss,
     ).to(device)
 
     optimizer = torch.optim.AdamW(
@@ -358,6 +361,14 @@ if __name__ == "__main__":
 
     args = parse()
 
-    wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(args, resolve=True))
+    start_time = datetime.now().replace(microsecond=0)
+    start_time_str = start_time.strftime("%y-%m-%d-%H-%M-%S")
 
-    train(args)
+    if args.intr:
+        wandb_name = f'train-{args.env}-{args.seed}-{args.intr}-{start_time_str}'
+    else:
+        wandb_name = f'train-{args.env}-{args.seed}-{start_time_str}'
+    wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(args, resolve=True),
+               name=wandb_name)
+
+    train(args, start_time, start_time_str)
