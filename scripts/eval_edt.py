@@ -229,11 +229,11 @@ if __name__ == "__main__":
     cfg.merge_with_dotlist([f"{k}={v}" for k, v in vars(args).items() if v is not None])
 
     if args.intr == 'none':
-        wandb_name = f'train-{args.env}-{args.seed}'
+        wandb_name = f'eval-{args.env}-{args.seed}'
     else:
         assert args.intr == 'state' or args.intr == 'embedding', \
             "--intr must be either 'state' or 'embedding'"
-        wandb_name = f'train-{args.env}-{args.seed}-{args.intr}'
+        wandb_name = f'eval-{args.env}-{args.seed}-{args.intr}'
     wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(args, resolve=True),
                name=wandb_name)
 
