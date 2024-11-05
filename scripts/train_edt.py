@@ -82,10 +82,8 @@ def train(args, start_time, start_time_str):
     real_rtg = args.real_rtg
     data_ratio = args.data_ratio
 
-    intrinsic_loss = args.intrinsic_loss
-    if intrinsic_loss:
-        assert intrinsic_loss == 'state' or intrinsic_loss == 'embedding', \
-            "Intrinsic loss must be either 'state' or 'embedding'"
+    intrinsic_loss = args.intr
+    intrinsic_weight = args.intr_weight
 
     eval_d4rl_score_mson = None
 
@@ -364,10 +362,12 @@ if __name__ == "__main__":
     start_time = datetime.now().replace(microsecond=0)
     start_time_str = start_time.strftime("%y-%m-%d-%H-%M-%S")
 
-    if args.intr:
-        wandb_name = f'train-{args.env}-{args.seed}-{args.intr}-{start_time_str}'
-    else:
+    if args.intr == 'none':
         wandb_name = f'train-{args.env}-{args.seed}-{start_time_str}'
+    else:
+        assert args.intr == 'state' or args.intr == 'embedding', \
+            "--intr must be either 'state' or 'embedding'"
+        wandb_name = f'train-{args.env}-{args.seed}-{args.intr}-{start_time_str}'
     wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(args, resolve=True),
                name=wandb_name)
 
