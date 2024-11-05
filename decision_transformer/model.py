@@ -3,8 +3,11 @@ import math
 import timm
 import torch
 import torch.nn as nn
+from torch.nn import init
 import torch.nn.functional as F
 from decision_transformer.utils import encode_return, get_d4rl_dataset_stats
+
+import numpy as np
 
 
 class MaskedCausalAttention(nn.Module):
@@ -259,6 +262,39 @@ class DecisionTransformer(nn.Module):
         return state_preds, action_preds, return_preds, reward_preds
 
 
+embeddings = torch.randn(256, 20, 512)
+
+
+class RNDModel(nn.Module):
+    def __init__(self, input_size):
+        super(RNDModel, self).__init__()
+
+        self.input_size = input_size
+
+        self.predictor = nn.Sequential(
+            nn.Linear(input_size, 512),
+            nn.ELU(),
+            nn.Linear(512, 512),
+            nn.ELU(),
+            nn.Linear(512, 512)
+        )
+
+        self.target = nn.Linear(input_size, 512)
+
+        for p in self.modules():
+            if isinstance(p, nn.Linear):
+                init.orthogonal_(p.weight, np.sqrt(2))
+                p.bias.data.zero_()
+
+        for param in self.target.parameters():
+            param.requires_grad = False
+
+    def forward(self, obs):
+        target_feature = self.target(obs)
+        predict_feature = self.predictor(obs)
+        return target_feature, predict_feature
+
+
 # a version that does not use reward at all
 class ElasticDecisionTransformer(
     DecisionTransformer
@@ -340,6 +376,13 @@ class ElasticDecisionTransformer(
         )
         self.predict_reward = torch.nn.Linear(h_dim, 1)
 
+        ### intrinsic branch
+        self.intrinsic_loss = intrinsic_loss
+        if intrinsic_loss == 'state':
+            self.rnd = RNDModel(state_dim)
+        elif intrinsic_loss == 'embedding':
+            self.rnd = RNDModel(h_dim)
+
     def forward(
         self, timesteps, states, actions, returns_to_go, *args, **kwargs
     ):
@@ -391,11 +434,16 @@ class ElasticDecisionTransformer(
             h[:, 2]
         )  # predict reward given s, R, a
 
-        target_feature = 0.
-        pred_feature = 0.
+        target_feature = None
+        pred_feature = None
 
         # states.shape = torch.Size([256, 20, 11])
         # state_embeddings.shape = torch.Size([256, 20, 512])
+        if self.intrinsic_loss == 'state':
+            target_feature, pred_feature = self.rnd(states)
+        elif self.intrinsic_loss == 'embedding':
+            target_feature, pred_feature = self.rnd(state_embeddings)
+        # TODO: apply rnd to "h" or "state_preds"/"action_preds"/"return_preds"/"reward_preds"
 
         return (
             state_preds,

@@ -268,18 +268,27 @@ def train(args, start_time, start_time_str):
                 ret_ce_loss = cross_entropy(return_preds_u, return_target_u)
 
                 def intrinsic_loss(pred, target):
-                    # TODO: Implement intrinsic loss
-                    return 0.
+                    criterion = nn.MSELoss()
+                    loss = criterion(pred, target)
+                    return loss
 
-                int_loss = intrinsic_loss(pred_features_u, target_features_u)
-
-                # TODO: add intrinsic loss to the overall loss
-                edt_loss = (
-                    action_loss
-                    + state_loss * state_loss_weight
-                    + imp_loss * exp_loss_weight
-                    + args.ce_weight * ret_ce_loss
-                )
+                if args.intr == 'none':
+                    int_loss = torch.tensor(0.0).to(device)
+                    edt_loss = (
+                        action_loss
+                        + state_loss * state_loss_weight
+                        + imp_loss * exp_loss_weight
+                        + ret_ce_loss * args.ce_weight
+                    )
+                else:
+                    int_loss = intrinsic_loss(pred_features_u, target_features_u)
+                    edt_loss = (
+                        action_loss
+                        + state_loss * state_loss_weight
+                        + imp_loss * exp_loss_weight
+                        + ret_ce_loss * args.ce_weight
+                        + int_loss * intrinsic_weight
+                    )
 
             optimizer.zero_grad()
             scaler.scale(edt_loss).backward()
