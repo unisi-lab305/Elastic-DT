@@ -139,6 +139,7 @@ def test(args):
             dt_mask=dt_mask,
             rtg_scale=rtg_scale,
             real_rtg=real_rtg,
+            intrinsic_loss=args.intr
         ).to(device)
 
         eval_chk_pt_path = os.path.join(eval_chk_pt_dir, eval_chk_pt_name)
@@ -209,7 +210,7 @@ if __name__ == "__main__":
 
     args = base_parse()
 
-    predefined_keys = ["env", "dataset", "n_heads", "n_blocks", "batch_size", "num_bin", "expectile", "seed", "intr"]
+    predefined_keys = ["env", "dataset", "n_heads", "n_blocks", "batch_size", "num_bin", "expectile", "seed"]
     values = args.chk_pt_name.split('_')
     arg_dict = dict(zip(predefined_keys, values))
 
@@ -222,7 +223,6 @@ if __name__ == "__main__":
     args.num_bin = int(float(arg_dict["num_bin"]))
     args.expectile = float(arg_dict["expectile"])
     args.seed = int(arg_dict["seed"])
-    args.intr = arg_dict["intr"]
     ###
     config_file = f"configs/{args.env if args.env else 'default'}.yaml"
     cfg = OmegaConf.load(config_file)
@@ -231,10 +231,12 @@ if __name__ == "__main__":
     if args.intr == 'none':
         wandb_name = f'eval-{args.env}-{args.seed}'
     else:
+        print('ò'*100)
+        print(args.intr)
         assert args.intr == 'state' or args.intr == 'pred' or args.intr == 'embedding', \
             "--intr must be either 'state' or 'pred' or 'embedding'"
         wandb_name = f'eval-{args.env}-{args.seed}-{args.intr}'
-    wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(args, resolve=True),
+    wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(cfg, resolve=True),
                name=wandb_name)
 
     test(cfg)

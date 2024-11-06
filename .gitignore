@@ -2,6 +2,8 @@
 experiment_track
 
 # bash files
+run_training_intrinsic.sh
+run_test_intrinsic.sh
 run_training.sh
 run_test.sh
 
