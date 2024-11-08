@@ -378,9 +378,10 @@ class ElasticDecisionTransformer(
 
         ### intrinsic branch
         self.intrinsic_loss = intrinsic_loss
-        if intrinsic_loss == 'state' or intrinsic_loss == 'pred':
+        if intrinsic_loss == 'state' or intrinsic_loss == 'state_pred':
             self.rnd = RNDModel(state_dim)
-        elif intrinsic_loss == 'embedding' or intrinsic_loss == 'full_embedding':
+        elif (intrinsic_loss == 'full_embedding' or intrinsic_loss == 'state_embedding' or
+              intrinsic_loss == 'action_embedding' or intrinsic_loss == 'return_embedding'):
             self.rnd = RNDModel(h_dim)
 
     def forward(
@@ -444,10 +445,14 @@ class ElasticDecisionTransformer(
         # state_embeddings.shape = torch.Size([256, 20, 512])
         if self.intrinsic_loss == 'state':
             target_feature, pred_feature = self.rnd(states)
-        elif self.intrinsic_loss == 'pred':
+        elif self.intrinsic_loss == 'state_pred':
             target_feature, pred_feature = self.rnd(state_preds)
-        elif self.intrinsic_loss == 'embedding':
+        elif self.intrinsic_loss == 'state_embedding':
             target_feature, pred_feature = self.rnd(state_embeddings)
+        elif self.intrinsic_loss == 'action_embedding':
+            target_feature, pred_feature = self.rnd(action_embeddings)
+        elif self.intrinsic_loss == 'return_embedding':
+            target_feature, pred_feature = self.rnd(returns_embeddings)
         elif self.intrinsic_loss == 'full_embedding':
             target_feature, pred_feature = self.rnd(full_embedding)
 
