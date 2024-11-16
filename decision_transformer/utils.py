@@ -531,7 +531,7 @@ def _return_search(
                 # estimated_rtg = imp_ret_preds.detach()
                 best_act = act_preds[0, -1 - i].detach()
 
-        # _, act_preds, _, _, _ = model.forward(
+        # _, act_preds, _, _, _, _, _ = model.forward(
         #     timesteps[:, t - context_len + 1 + best_i : t + 1 + best_i],
         #     states[:, t - context_len + 1 + best_i : t + 1 + best_i],
         #     actions[:, t - context_len + 1 + best_i : t + 1 + best_i],
@@ -574,7 +574,7 @@ def _return_search_heuristic(
 
     if t < context_len:
         for i in range(0, math.ceil((t + 1)/rs_ratio), rs_steps):
-            _, act_preds, ret_preds, imp_ret_preds, _ = model.forward(
+            _, act_preds, ret_preds, imp_ret_preds, _, _, _ = model.forward(
                 timesteps[:, i : context_len + i],
                 states[:, i : context_len + i],
                 actions[:, i : context_len + i],
@@ -595,7 +595,7 @@ def _return_search_heuristic(
                 )
 
                 # we should estimate it again with the estimated rtg
-                _, act_preds, ret_preds, imp_ret_preds_pure, _ = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _ = model.forward(
                     timesteps[:, i : context_len + i],
                     states[:, i : context_len + i],
                     actions[:, i : context_len + i],
@@ -604,7 +604,7 @@ def _return_search_heuristic(
                 )
 
             else:
-                _, act_preds, ret_preds, imp_ret_preds_pure, _ = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _ = model.forward(
                     timesteps[:, i : context_len + i],
                     states[:, i : context_len + i],
                     actions[:, i : context_len + i],
@@ -629,7 +629,7 @@ def _return_search_heuristic(
         for i in range(prev_best_index-heuristic_delta, prev_best_index+1+heuristic_delta):
             if i < 0 or i >= context_len:
                 continue
-            _, act_preds, ret_preds, imp_ret_preds, _ = model.forward(
+            _, act_preds, ret_preds, imp_ret_preds, _, _, _ = model.forward(
                 timesteps[:, t - context_len + 1 + i : t + 1 + i],
                 states[:, t - context_len + 1 + i : t + 1 + i],
                 actions[:, t - context_len + 1 + i : t + 1 + i],
@@ -651,7 +651,7 @@ def _return_search_heuristic(
                 )
 
                 # we should estimate the results again with the estimated return
-                _, act_preds, ret_preds, imp_ret_preds_pure, _ = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _ = model.forward(
                     timesteps[:, t - context_len + 1 + i : t + 1 + i],
                     states[:, t - context_len + 1 + i : t + 1 + i],
                     actions[:, t - context_len + 1 + i : t + 1 + i],
@@ -660,7 +660,7 @@ def _return_search_heuristic(
                 )
 
             else:
-                _, act_preds, ret_preds, imp_ret_preds_pure, _ = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _ = model.forward(
                     timesteps[:, t - context_len + 1 + i : t + 1 + i],
                     states[:, t - context_len + 1 + i : t + 1 + i],
                     actions[:, t - context_len + 1 + i : t + 1 + i],

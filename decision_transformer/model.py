@@ -381,7 +381,8 @@ class ElasticDecisionTransformer(
         if intrinsic_loss == 'state' or intrinsic_loss == 'state_pred':
             self.rnd = RNDModel(state_dim)
         elif (intrinsic_loss == 'full_embedding' or intrinsic_loss == 'state_embedding' or
-              intrinsic_loss == 'action_embedding' or intrinsic_loss == 'return_embedding'):
+              intrinsic_loss == 'action_embedding' or intrinsic_loss == 'return_embedding' or
+              intrinsic_loss == 'transformer'):
             self.rnd = RNDModel(h_dim)
 
     def forward(
@@ -425,6 +426,8 @@ class ElasticDecisionTransformer(
         h = self.transformer(h)
         h = h.reshape(B, T, self.num_inputs, self.h_dim).permute(0, 2, 1, 3)
 
+        h_output = h.reshape(B, self.num_inputs * T, self.h_dim)
+
         # get predictions
         return_preds = self.predict_rtg(h[:, 0])  # predict next rtg given s
         return_preds2 = self.predict_rtg2(
@@ -455,6 +458,8 @@ class ElasticDecisionTransformer(
             target_feature, pred_feature = self.rnd(returns_embeddings)
         elif self.intrinsic_loss == 'full_embedding':
             target_feature, pred_feature = self.rnd(full_embedding)
+        elif self.intrinsic_loss == 'transformer':
+            target_feature, pred_feature = self.rnd(h_output)
 
         return (
             state_preds,

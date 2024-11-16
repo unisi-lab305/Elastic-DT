@@ -373,9 +373,10 @@ if __name__ == "__main__":
         wandb_name = f'train-{args.env}-{args.seed}-{start_time_str}'
     else:
         assert (args.intr == 'state' or args.intr == 'state_pred' or args.intr == 'full_embedding' or
-                args.intr == 'state_embedding' or args.intr == 'action_embedding' or args.intr == 'return_embedding'), \
+                args.intr == 'state_embedding' or args.intr == 'action_embedding' or args.intr == 'return_embedding' or
+                args.intr == 'transformer'), \
             ("--intr must be either 'state' or 'state_pred' or "
-             "'full_embedding' or 'state_embedding' or 'action_embedding' or 'return_embedding'")
+             "'full_embedding' or 'state_embedding' or 'action_embedding' or 'return_embedding' or 'transformer'")
         wandb_name = f'train-{args.env}-{args.seed}-{args.intr}-{start_time_str}'
     wandb.init(project='edt-intrinsic', config=OmegaConf.to_container(args, resolve=True),
                name=wandb_name)
