@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.4.3-devel-ubuntu20.04
+FROM nvidia/cuda:12.4.0-devel-ubuntu20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -49,10 +49,9 @@ RUN /opt/conda/envs/edt/bin/pip3 install pybullet==3.0.4 \
                     circle-fit==0.1.3 \
                     ipython \
                     torch \
-                    torchvision \ 
-                    torchaudio \ 
+                    torchvision \
+                    torchaudio \
                     wandb
-                    
 
 RUN apt-get install -y \
 	libglib2.0-0 \
@@ -60,21 +59,19 @@ RUN apt-get install -y \
 	libxrender1 \
 	libfontconfig1 \
     libcudnn8 \
-    libcudnn8-dev 
+    libcudnn8-dev
 
 RUN /opt/conda/envs/edt/bin/pip install protobuf==3.20.* \
 			sympy
-			
+
 RUN mkdir /root/.mujoco
 
 COPY mujoco210 /root/.mujoco/mujoco210
 
 RUN /opt/conda/envs/edt/bin/pip3 install -U 'mujoco-py<2.2,>=2.1' \
                                              gym
-                                             
 
-ENV PYTHONPATH=$PYTHONPATH:/workspace/
-
+ENV PYTHONPATH=/workspace/
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mujoco210/bin
 
 RUN /opt/conda/envs/edt/bin/pip install \
@@ -88,13 +85,15 @@ RUN /opt/conda/envs/edt/bin/pip install \
     tensorflow==2.6.0 \
     keras==2.6.0 \
     tf-agents==0.11.0rc0 \
-    tqdm==4.62.2 \ 
+    tqdm==4.62.2 \
     gym==0.23.0
 
 RUN /opt/conda/envs/edt/bin/pip install -U numpy
 
-RUN /opt/conda/envs/edt/bin/pip install \ 
-    d4rl \ 
+RUN apt-get update && apt-get install -y rustc cargo
+
+RUN /opt/conda/envs/edt/bin/pip install \
+    d4rl \
     git+https://github.com/aravindr93/mjrl@master#egg=mjrl \
     timm \
     'cython<3' \
