@@ -1,5 +1,6 @@
 # text file
 experiment_track
+cmd
 
 # bash files
 run_training_intrinsic.sh
