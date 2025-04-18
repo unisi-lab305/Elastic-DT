@@ -74,13 +74,14 @@ def main(args):
     env_dir = args.env
     model_dir = args.model
     tensor_dir = 'tensors'
+    artifact_type = args.artifact_type
 
     model_artifacts_path = os.path.join(base_dir, env_dir, model_dir)
     tensor_path = os.path.join(model_artifacts_path, tensor_dir)
 
     tensors = []
     for tensor_file in sorted(os.listdir(tensor_path)):
-        if tensor_file.endswith('.pt'):
+        if tensor_file.startswith(artifact_type) and tensor_file.endswith('.pt'):
             tensor = load_tensor(tensor_path, tensor_file)  # [20, 512]
             tensors.append(tensor)
 
@@ -97,8 +98,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--env',
         type=str,
-        choices=['ant', 'halfcheetah', 'hopper', 'walker'],
-        help='Environment folder (one of: ant, halfcheetah, hopper, walker)'
+        choices=['ant', 'halfcheetah', 'hopper', 'walker2d'],
+        help='Environment folder (one of: ant, halfcheetah, hopper, walker2d)'
     )
 
     parser.add_argument(
@@ -106,6 +107,13 @@ if __name__ == "__main__":
         type=str,
         choices=['baseline', 'sil_3l', 'til_3l'],
         help='Model folder (one of: baseline, sil_3l, til_3l)'
+    )
+
+    parser.add_argument(
+        '--artifact_type',
+        type=str,
+        choices=['state_embeddings'],
+        help='Artifact type (one of: state_embeddings)'
     )
 
     main_args = parser.parse_args()
