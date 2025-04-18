@@ -82,6 +82,8 @@ def test(args):
     real_rtg = args.real_rtg
 
     eval_chk_pt_dir = f'./best_models/{args.chk_pt_dir}'
+    artifacts_dir = f'./artifacts/{args.env}/{args.chk_pt_dir}/tensors'
+    os.makedirs(artifacts_dir, exist_ok=True)
 
     eval_chk_pt_name = args.chk_pt_name
     eval_chk_pt_list = [eval_chk_pt_name]
@@ -114,7 +116,8 @@ def test(args):
         rtg_scale=rtg_scale,
         real_rtg=real_rtg,
         intrinsic_loss=args.intr,
-        return_emb=True
+        return_emb=True,
+        embedding_artifact=args.embedding_artifact
     ).to(device)
 
     eval_chk_pt_path = os.path.join(eval_chk_pt_dir, eval_chk_pt_name)
@@ -146,6 +149,8 @@ def test(args):
         render=render,
         heuristic=args.heuristic,
         heuristic_delta=args.heuristic_delta,
+        embedding_artifact=args.embedding_artifact,
+        artifacts_dir=artifacts_dir
     )
     tf = time.time()
     print(f"rs_steps: {rs_steps}")

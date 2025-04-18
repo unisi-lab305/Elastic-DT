@@ -32,6 +32,7 @@ def base_parse():
 
     parser.add_argument("--dataset_dir", type=str, default="data/")
     parser.add_argument("--log_dir", type=str, default="dt_runs/")
+    parser.add_argument("--embedding_artifact", type=str, default="state_embeddings")
 
     parser.add_argument("--context_len", type=int, default=20)
     parser.add_argument("--n_blocks", type=int, default=4)
@@ -248,6 +249,8 @@ def edt_evaluate(
     real_rtg=False,
     heuristic=False,
     heuristic_delta=1,
+    embedding_artifact=None,
+    artifacts_dir=None,
     *args, 
     **kwargs
 ):
@@ -332,7 +335,7 @@ def edt_evaluate(
 
                 print(f'\nstep: {t}')
                 if not heuristic:
-                    act, best_index, best_state_emb = _return_search(
+                    act, best_index, best_emb = _return_search(
                         model=model,
                         timesteps=timesteps,
                         states=states,
@@ -378,11 +381,11 @@ def edt_evaluate(
                 print(f'best index:  {best_index}')
 
                 # save best embedding for the current time step
-                if t%50==0 or t==max_test_ep_len-1:
-                    tensor_name = f'{t+1}.pt'
-                    path = f'./artifacts/{tensor_name}'
-                    torch.save(best_state_emb, path)
-                    os.chmod(path, 0o666)
+                # if t%50==0 or t==max_test_ep_len-1:
+                tensor_name = f'{embedding_artifact}_{t+1}.pt'
+                path = f'{artifacts_dir}/{tensor_name}'
+                torch.save(best_emb, path)
+                os.chmod(path, 0o666)
 
                 running_state, running_reward, done, _ = env.step(
                     act.cpu().numpy()
@@ -436,12 +439,12 @@ def _return_search(
     best_i = 0
     best_act = None
 
-    best_state_emb = None
+    best_emb = None
 
     if t < context_len:
         print(f'iterations: {math.ceil(math.ceil((t + 1) / rs_ratio) / rs_steps) * 2}')
         for i in range(0, math.ceil((t + 1)/rs_ratio), rs_steps):
-            _, act_preds, ret_preds, imp_ret_preds, _, _, _, state_emb = model.forward(
+            _, act_preds, ret_preds, imp_ret_preds, _, _, _, emb = model.forward(
                 timesteps[:, i : context_len + i],
                 states[:, i : context_len + i],
                 actions[:, i : context_len + i],
@@ -464,7 +467,7 @@ def _return_search(
                 )
 
                 # we should estimate it again with the estimated rtg
-                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _, state_emb = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _, emb = model.forward(
                     timesteps[:, i : context_len + i],
                     states[:, i : context_len + i],
                     actions[:, i : context_len + i],
@@ -473,7 +476,7 @@ def _return_search(
                 )
 
             else:
-                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _, state_emb = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _, emb = model.forward(
                     timesteps[:, i : context_len + i],
                     states[:, i : context_len + i],
                     actions[:, i : context_len + i],
@@ -490,13 +493,13 @@ def _return_search(
                 best_i = i
                 estimated_rtg = imp_ret_preds.detach()
                 best_act = act_preds[0, t - i].detach()
-                best_state_emb = state_emb
+                best_emb = emb
 
 
     else:
         print(f'iterations: {math.ceil(math.ceil(context_len / rs_ratio) / rs_steps) * 2}')
         for i in range(0, math.ceil(context_len/rs_ratio), rs_steps):
-            _, act_preds, ret_preds, imp_ret_preds, _, _, _, state_emb = model.forward(
+            _, act_preds, ret_preds, imp_ret_preds, _, _, _, emb = model.forward(
                 timesteps[:, t - context_len + 1 + i : t + 1 + i],
                 states[:, t - context_len + 1 + i : t + 1 + i],
                 actions[:, t - context_len + 1 + i : t + 1 + i],
@@ -518,7 +521,7 @@ def _return_search(
                 )
 
                 # we should estimate the results again with the estimated return
-                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _, state_emb = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _, emb = model.forward(
                     timesteps[:, t - context_len + 1 + i : t + 1 + i],
                     states[:, t - context_len + 1 + i : t + 1 + i],
                     actions[:, t - context_len + 1 + i : t + 1 + i],
@@ -527,7 +530,7 @@ def _return_search(
                 )
 
             else:
-                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _, state_emb = model.forward(
+                _, act_preds, ret_preds, imp_ret_preds_pure, _, _, _, emb = model.forward(
                     timesteps[:, t - context_len + 1 + i : t + 1 + i],
                     states[:, t - context_len + 1 + i : t + 1 + i],
                     actions[:, t - context_len + 1 + i : t + 1 + i],
@@ -544,7 +547,7 @@ def _return_search(
                 best_i = i
                 # estimated_rtg = imp_ret_preds.detach()
                 best_act = act_preds[0, -1 - i].detach()
-                best_state_emb = state_emb
+                best_emb = emb
 
         # _, act_preds, _, _, _, _, _ = model.forward(
         #     timesteps[:, t - context_len + 1 + best_i : t + 1 + best_i],
@@ -554,7 +557,7 @@ def _return_search(
         #     rewards[:, t - context_len + 1 + best_i : t + 1 + best_i],
         # )
 
-    return best_act, context_len - best_i, best_state_emb
+    return best_act, context_len - best_i, best_emb
 
 
 def _return_search_heuristic(

@@ -317,7 +317,8 @@ class ElasticDecisionTransformer(
         real_rtg=False,
         is_continuous=True,
         intrinsic_loss=None,
-        return_emb=False
+        return_emb=False,
+        embedding_artifact=None
     ):
         super().__init__(
             state_dim,
@@ -388,6 +389,7 @@ class ElasticDecisionTransformer(
 
         ### embeddings
         self.return_emb = return_emb
+        self.embedding_artifact = embedding_artifact
 
     def forward(
         self, timesteps, states, actions, returns_to_go, *args, **kwargs
@@ -466,16 +468,17 @@ class ElasticDecisionTransformer(
             target_feature, pred_feature = self.rnd(h_output)
 
         if self.return_emb:
-            return (
-                state_preds,
-                action_preds,
-                return_preds,
-                return_preds2,
-                reward_preds,
-                target_feature,
-                pred_feature,
-                state_embeddings
-            )
+            if self.embedding_artifact=='state_embeddings':
+                return (
+                    state_preds,
+                    action_preds,
+                    return_preds,
+                    return_preds2,
+                    reward_preds,
+                    target_feature,
+                    pred_feature,
+                    state_embeddings
+                )
         else:
             return (
                 state_preds,
