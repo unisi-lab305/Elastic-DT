@@ -6,6 +6,7 @@ experiment_track
 cmd
 
 # bash files
+run_embeddings_saving.sh
 run_embeddings_stats.sh
 run_training_intrinsic.sh
 run_test_intrinsic.sh

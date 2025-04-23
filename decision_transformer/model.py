@@ -468,6 +468,7 @@ class ElasticDecisionTransformer(
             target_feature, pred_feature = self.rnd(h_output)
 
         if self.return_emb:
+            # TODO: add more embedding vectors
             if self.embedding_artifact=='state_embeddings':
                 return (
                     state_preds,

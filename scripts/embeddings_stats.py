@@ -87,7 +87,7 @@ def main(args):
 
     stats = analyze_embeddings(tensors)
 
-    stats_path = os.path.join(model_artifacts_path, 'stats.txt')
+    stats_path = os.path.join(model_artifacts_path, f'stats_{args.artifact_type}.txt')
     save_stats(stats, stats_path)
     print(f'completed -> stats saved in: {stats_path}')
 
