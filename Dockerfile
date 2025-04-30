@@ -51,7 +51,9 @@ RUN /opt/conda/envs/edt/bin/pip3 install pybullet==3.0.4 \
                     torch \
                     torchvision \
                     torchaudio \
-                    wandb
+                    wandb \
+                    typing_extensions \
+                    scikit-learn
 
 RUN apt-get install -y \
 	libglib2.0-0 \

@@ -105,8 +105,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--model',
         type=str,
-        choices=['baseline', 'sil_3l', 'til_3l'],
-        help='Model folder (one of: baseline, sil_3l, til_3l)'
+        choices=['baseline', 'sil_1l', 'sil_3l', 'sil_10l', 'til_1l', 'til_3l', 'til_10l'],
+        help='Model folder (one of: baseline, sil_1l, sil_3l, sil_10l, til_1l, til_3l, til_10l)'
     )
 
     parser.add_argument(
