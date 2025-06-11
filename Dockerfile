@@ -38,7 +38,9 @@ RUN apt-get update && \
     /opt/conda/bin/conda create -n edt python=3.7 && \
     /opt/conda/bin/conda init bash 
 
-RUN /opt/conda/envs/edt/bin/pip3 install pybullet==3.0.4 \
+RUN /opt/conda/envs/edt/bin/pip install --upgrade pip
+
+RUN /opt/conda/envs/edt/bin/pip3 install --default-timeout=300 pybullet==3.0.4 \
                     packaging==19.2 \
                     matplotlib==3.1.1 \
                     opencv-python==4.1.2.30 \
@@ -55,7 +57,7 @@ RUN /opt/conda/envs/edt/bin/pip3 install pybullet==3.0.4 \
                     typing_extensions \
                     scikit-learn
 
-RUN apt-get install -y \
+RUN apt-get update && apt-get install -y --fix-missing \
 	libglib2.0-0 \
 	libsm6 \
 	libxrender1 \
