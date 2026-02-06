@@ -1,1 +1,1 @@
-docker build -t dev/edt:v0 .
+docker build -t dev/edt-intrinsic:v0 .
