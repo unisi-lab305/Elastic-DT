@@ -151,6 +151,7 @@ def train(args, start_time, start_time_str):
         rtg_scale=rtg_scale,
         real_rtg=real_rtg,
         intrinsic_loss=intrinsic_loss,
+        decouple=args.decouple,
     ).to(device)
 
     optimizer = torch.optim.AdamW(

@@ -139,7 +139,8 @@ def test(args):
             dt_mask=dt_mask,
             rtg_scale=rtg_scale,
             real_rtg=real_rtg,
-            intrinsic_loss=args.intr
+            intrinsic_loss=args.intr,
+            decouple=args.decouple
         ).to(device)
 
         eval_chk_pt_path = os.path.join(eval_chk_pt_dir, eval_chk_pt_name)

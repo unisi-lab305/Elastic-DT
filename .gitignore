@@ -4,6 +4,12 @@ artifacts/
 # text file
 experiment_track
 cmd
+*.pdf
+CLAUDE.md
+
+# image file
+*.jpg
+*.png
 
 # bash files
 run_embeddings_saving.sh

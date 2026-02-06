@@ -80,6 +80,9 @@ def base_parse():
 
     parser.add_argument("--intr", type=str, default='none')
     parser.add_argument("--intr_weight", type=float, default=1.)
+    parser.add_argument("--decouple", type=str, default='none',
+                        choices=['none', 'full', 'partial'],
+                        help="Sensorimotor decoupling: 'none' (standard), 'full' (perception only L_INT), 'partial' (perception gets L_INT + state_loss)")
 
     args = parser.parse_args()
 

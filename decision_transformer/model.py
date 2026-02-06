@@ -317,6 +317,7 @@ class ElasticDecisionTransformer(
         real_rtg=False,
         is_continuous=True,
         intrinsic_loss=None,
+        decouple='none',
         return_emb=False,
         embedding_artifact=None
     ):
@@ -380,6 +381,7 @@ class ElasticDecisionTransformer(
 
         ### intrinsic branch
         self.intrinsic_loss = intrinsic_loss
+        self.decouple = decouple
         if intrinsic_loss == 'state' or intrinsic_loss == 'state_pred':
             self.rnd = RNDModel(state_dim)
         elif (intrinsic_loss == 'full_embedding' or intrinsic_loss == 'state_embedding' or
@@ -434,18 +436,40 @@ class ElasticDecisionTransformer(
 
         h_output = h.reshape(B, self.num_inputs * T, self.h_dim)
 
-        # get predictions
-        return_preds = self.predict_rtg(h[:, 0])  # predict next rtg given s
-        return_preds2 = self.predict_rtg2(
-            h[:, 0]
-        )  # predict next rtg with implicit loss
-        action_preds = self.predict_action(
-            h[:, 1]
-        )  # predict action given s, R
-        state_preds = self.predict_state(torch.cat((h[:, 1], action_preds), 2))
-        reward_preds = self.predict_reward(
-            h[:, 2]
-        )  # predict reward given s, R, a
+        # Sensorimotor Decoupling
+        if self.decouple == 'full':
+            # Full decoupling: ALL predictions use detached h
+            h_pred = h.detach()
+            return_preds = self.predict_rtg(h_pred[:, 0])
+            return_preds2 = self.predict_rtg2(h_pred[:, 0])
+            action_preds = self.predict_action(h_pred[:, 1])
+            state_preds = self.predict_state(torch.cat((h_pred[:, 1], action_preds), 2))
+            reward_preds = self.predict_reward(h_pred[:, 2])
+
+        elif self.decouple == 'partial':
+            # Partial decoupling: state_loss flows to perception, others don't
+            h_detached = h.detach()
+            return_preds = self.predict_rtg(h_detached[:, 0])
+            return_preds2 = self.predict_rtg2(h_detached[:, 0])
+            action_preds = self.predict_action(h_detached[:, 1])
+            # state_preds uses NON-detached h (state_loss flows to perception)
+            # but detached action_preds to prevent action gradients through state path
+            state_preds = self.predict_state(torch.cat((h[:, 1], action_preds.detach()), 2))
+            reward_preds = self.predict_reward(h_detached[:, 2])
+
+        else:  # decouple == 'none'
+            # Standard behavior: all gradients flow through
+            return_preds = self.predict_rtg(h[:, 0])  # predict next rtg given s
+            return_preds2 = self.predict_rtg2(
+                h[:, 0]
+            )  # predict next rtg with implicit loss
+            action_preds = self.predict_action(
+                h[:, 1]
+            )  # predict action given s, R
+            state_preds = self.predict_state(torch.cat((h[:, 1], action_preds), 2))
+            reward_preds = self.predict_reward(
+                h[:, 2]
+            )  # predict reward given s, R, a
 
         target_feature = None
         pred_feature = None
